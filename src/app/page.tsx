@@ -1,6 +1,7 @@
 // app/page.tsx
 "use client";
 
+import Petra from "@/components/Aptos";
 import SolanaApp from "@/components/Solana";
 import WalletConnect from "@/components/WalletConnect";
 import { connectMetaMask } from "@/lib/evm";
@@ -58,6 +59,7 @@ export default function Home() {
 
 			<WalletConnect />
 			<SolanaApp />
+			<Petra />
 		</main>
 	);
 }
