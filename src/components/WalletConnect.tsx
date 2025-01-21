@@ -1,90 +1,82 @@
+"use client";
+
 import { useState } from "react";
-import { ethers } from "ethers";
-import TxList from "./TxList";
+import { motion, AnimatePresence } from "framer-motion";
+import { WalletIcon, XIcon } from "lucide-react";
 
-interface PaymentParams {
-	setTxs: React.Dispatch<React.SetStateAction<any[]>>;
-	ether: string;
-	addr: string;
-}
-
-const startPayment = async ({
-	setTxs,
-	ether,
-	addr,
-}: PaymentParams): Promise<void> => {
-	try {
-		if (!window.ethereum) {
-			throw new Error("No crypto wallet found. Please install it.");
-		}
-
-		await window.ethereum.request({ method: "eth_requestAccounts" });
-		const provider = new ethers.providers.Web3Provider(window.ethereum);
-		const signer = provider.getSigner();
-		ethers.utils.getAddress(addr);
-		const tx = await signer.sendTransaction({
-			to: addr,
-			value: ethers.utils.parseEther(ether),
-		});
-		console.log({ ether, addr });
-		console.log("tx", tx);
-		setTxs([tx]);
-	} catch (err: any) {
-		throw new Error(err.message);
-	}
-};
+const wallets = [
+	{ name: "MetaMask", ecosystem: "EVM" },
+	{ name: "Trust Wallet", ecosystem: "EVM" },
+	{ name: "Keplr", ecosystem: "Cosmos" },
+	{ name: "Phantom", ecosystem: "Solana" },
+	{ name: "Pontem", ecosystem: "Aptos" },
+];
 
 export default function WalletConnect() {
-	const [txs, setTxs] = useState<any[]>([]);
+	const [isOpen, setIsOpen] = useState(false);
+	const [connectedWallets, setConnectedWallets] = useState<string[]>([]);
 
-	const handleSubmit = async (
-		e: React.FormEvent<HTMLFormElement>
-	): Promise<void> => {
-		e.preventDefault();
-		const formData = new FormData(e.currentTarget);
-		await startPayment({
-			setTxs,
-			ether: formData.get("ether") as string,
-			addr: formData.get("addr") as string,
-		});
+	const toggleWallet = (walletName: string) => {
+		setConnectedWallets((prev) =>
+			prev.includes(walletName)
+				? prev.filter((w) => w !== walletName)
+				: [...prev, walletName]
+		);
 	};
 
 	return (
-		<form className="m-4" onSubmit={handleSubmit}>
-			<div className="credit-card w-full lg:w-1/2 sm:w-auto shadow-lg mx-auto rounded-xl bg-white">
-				<main className="mt-4 p-4">
-					<h1 className="text-xl font-semibold text-gray-700 text-center">
-						Send ETH payment
-					</h1>
-					<div className="">
-						<div className="my-3">
-							<input
-								type="text"
-								name="addr"
-								className="input input-bordered block w-full focus:ring focus:outline-none"
-								placeholder="Recipient Address"
-							/>
-						</div>
-						<div className="my-3">
-							<input
-								name="ether"
-								type="text"
-								className="input input-bordered block w-full focus:ring focus:outline-none"
-								placeholder="Amount in ETH"
-							/>
-						</div>
-					</div>
-				</main>
-				<footer className="p-4">
-					<button
-						type="submit"
-						className="btn btn-primary submit-button focus:ring focus:outline-none w-full"
+		<div className="relative">
+			<button
+				onClick={() => setIsOpen(!isOpen)}
+				className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-full transition duration-300 flex items-center"
+			>
+				<WalletIcon className="mr-2" />
+				{connectedWallets.length > 0
+					? `${connectedWallets.length} Connected`
+					: "Connect Wallet"}
+			</button>
+
+			<AnimatePresence>
+				{isOpen && (
+					<motion.div
+						initial={{ opacity: 0, scale: 0.95 }}
+						animate={{ opacity: 1, scale: 1 }}
+						exit={{ opacity: 0, scale: 0.95 }}
+						transition={{ duration: 0.2 }}
+						className="absolute right-0 mt-2 w-72 bg-gray-800 rounded-lg shadow-lg overflow-hidden z-10"
 					>
-						Pay now
-					</button>
-					<TxList txs={txs} />
-				</footer>
-			</div>
-		</form>
+						<div className="p-4">
+							<div className="flex justify-between items-center mb-4">
+								<h3 className="text-lg font-semibold">Connect Wallet</h3>
+								<button
+									onClick={() => setIsOpen(false)}
+									className="text-gray-400 hover:text-white"
+								>
+									<XIcon />
+								</button>
+							</div>
+							<div className="space-y-2">
+								{wallets.map((wallet) => (
+									<button
+										key={wallet.name}
+										onClick={() => toggleWallet(wallet.name)}
+										className={`w-full p-2 rounded-md flex items-center justify-between transition duration-300 ${
+											connectedWallets.includes(wallet.name)
+												? "bg-purple-600 text-white"
+												: "bg-gray-700 text-gray-300 hover:bg-gray-600"
+										}`}
+									>
+										<span>{wallet.name}</span>
+										<span className="text-sm opacity-75">
+											{wallet.ecosystem}
+										</span>
+									</button>
+								))}
+							</div>
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</div>
 	);
 }
