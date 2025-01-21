@@ -1,7 +1,4 @@
-import { useState, useCallback } from 'react';
-import { ethers } from 'ethers';
-import { AptosClient } from "aptos";
-import { Connection, PublicKey, SystemProgram, Transaction, clusterApiUrl, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { useState } from 'react';
 
 export function useWallets() {
     const [connectedWallet, setConnectedWallet] = useState<string | null>(null);

@@ -101,4 +101,6 @@ src/
 - [Framer Motion](https://www.framer.com/motion/) - Animations
 - [ethers.js](https://docs.ethers.org/) - Ethereum interactions
 
-## Deployment Link :
+## Deployment Link
+
+[https://gluex-frontend-task.vercel.app](https://gluex-frontend-task.vercel.app)

@@ -9,6 +9,7 @@ import {
 } from "@/services/transactions";
 import Toast from "./ui/Toast";
 import { WalletIcon } from "lucide-react";
+import { WalletError } from "@/types/global";
 
 interface TransactionFormProps {
 	selectedWallet: string | null;
@@ -61,9 +62,10 @@ export default function TransactionForm({
 			});
 			setRecipient("");
 			setAmount("");
-		} catch (error: any) {
+		} catch (error: unknown) {
+			const walletError = error as WalletError;
 			setToast({
-				message: `Transaction failed: ${error.message}`,
+				message: `Transaction failed: ${walletError.message}`,
 				type: "error",
 			});
 		} finally {
