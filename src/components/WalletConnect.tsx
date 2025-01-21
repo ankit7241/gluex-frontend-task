@@ -2,42 +2,71 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { WalletIcon, XIcon } from "lucide-react";
+import { WalletIcon, XIcon, LogOutIcon } from "lucide-react";
+import { useWallets } from "@/hooks/useWallets";
 
-const wallets = [
-	{ name: "MetaMask", ecosystem: "EVM" },
-	{ name: "Trust Wallet", ecosystem: "EVM" },
-	{ name: "Keplr", ecosystem: "Cosmos" },
-	{ name: "Phantom", ecosystem: "Solana" },
-	{ name: "Pontem", ecosystem: "Aptos" },
-];
+const WALLET_CONFIGS = [
+	{ name: "MetaMask", ecosystem: "EVM", connectFn: "connectEVMWallet" },
+	{ name: "Phantom", ecosystem: "Solana", connectFn: "connectSolanaWallet" },
+	{ name: "Petra", ecosystem: "Aptos", connectFn: "connectAptosWallet" },
+] as const;
 
-export default function WalletConnect() {
+interface WalletConnectProps {
+	onSelect: (wallet: string | null) => void;
+}
+
+export default function WalletConnect({ onSelect }: WalletConnectProps) {
 	const [isOpen, setIsOpen] = useState(false);
-	const [connectedWallets, setConnectedWallets] = useState<string[]>([]);
+	const { connectedWallet, walletAddress, disconnectWallet, ...walletActions } =
+		useWallets();
 
-	const toggleWallet = (walletName: string) => {
-		setConnectedWallets((prev) =>
-			prev.includes(walletName)
-				? prev.filter((w) => w !== walletName)
-				: [...prev, walletName]
-		);
+	const handleWalletClick = async (wallet: (typeof WALLET_CONFIGS)[number]) => {
+		try {
+			if (connectedWallet === wallet.name) {
+				disconnectWallet();
+				onSelect(null);
+			} else if (!connectedWallet) {
+				await walletActions[wallet.connectFn as keyof typeof walletActions]();
+				onSelect(wallet.name);
+				setIsOpen(false);
+			}
+		} catch (error: any) {
+			alert(error.message);
+		}
+	};
+
+	const handleDisconnect = () => {
+		disconnectWallet();
+		onSelect(null);
 	};
 
 	return (
 		<div className="relative">
-			<button
-				onClick={() => setIsOpen(!isOpen)}
-				className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-full transition duration-300 flex items-center"
-			>
-				<WalletIcon className="mr-2" />
-				{connectedWallets.length > 0
-					? `${connectedWallets.length} Connected`
-					: "Connect Wallet"}
-			</button>
+			{!connectedWallet ? (
+				<button
+					onClick={() => setIsOpen(!isOpen)}
+					className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-full transition duration-300 flex items-center"
+				>
+					<WalletIcon className="mr-2" />
+					Connect Wallet
+				</button>
+			) : (
+				<div className="flex items-center gap-2">
+					<div className="bg-purple-600 px-4 py-2 rounded-full">
+						{walletAddress?.slice(0, 6)}...
+					</div>
+					<button
+						onClick={handleDisconnect}
+						className="bg-red-600 hover:bg-red-700 p-2 rounded-full transition duration-300"
+						title="Disconnect Wallet"
+					>
+						<LogOutIcon className="w-5 h-5" />
+					</button>
+				</div>
+			)}
 
 			<AnimatePresence>
-				{isOpen && (
+				{isOpen && !connectedWallet && (
 					<motion.div
 						initial={{ opacity: 0, scale: 0.95 }}
 						animate={{ opacity: 1, scale: 1 }}
@@ -56,15 +85,11 @@ export default function WalletConnect() {
 								</button>
 							</div>
 							<div className="space-y-2">
-								{wallets.map((wallet) => (
+								{WALLET_CONFIGS.map((wallet) => (
 									<button
 										key={wallet.name}
-										onClick={() => toggleWallet(wallet.name)}
-										className={`w-full p-2 rounded-md flex items-center justify-between transition duration-300 ${
-											connectedWallets.includes(wallet.name)
-												? "bg-purple-600 text-white"
-												: "bg-gray-700 text-gray-300 hover:bg-gray-600"
-										}`}
+										onClick={() => handleWalletClick(wallet)}
+										className="w-full p-2 rounded-md flex items-center justify-between transition duration-300 bg-gray-700 text-gray-300 hover:bg-gray-600"
 									>
 										<span>{wallet.name}</span>
 										<span className="text-sm opacity-75">
