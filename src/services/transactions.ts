@@ -44,14 +44,14 @@ export const sendAptosTransaction = async (recipient: string, amount: string): P
 
     const formattedAmount = Math.round(parseFloat(amount) * 100000000);
     
-    const transaction: AptosTransaction = {
+    const payload: AptosTransaction = {
         arguments: [recipient, formattedAmount.toString()],
         function: "0x1::coin::transfer",
         type: "entry_function_payload",
         type_arguments: ["0x1::aptos_coin::AptosCoin"],
     };
 
-    const pendingTransaction = await wallet.signAndSubmitTransaction(transaction);
+    const pendingTransaction = await wallet.signAndSubmitTransaction({ payload });
     return pendingTransaction;
 };
 

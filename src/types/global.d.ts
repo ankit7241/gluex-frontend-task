@@ -9,7 +9,7 @@ declare global {
         aptos?: {
             connect: () => Promise<{ address: string }>;
             isConnected: () => Promise<boolean>;
-            signAndSubmitTransaction: (transaction: AptosTransaction) => Promise<{ hash: string }>;
+            signAndSubmitTransaction: (args: { payload: AptosTransaction }) => Promise<{ hash: string }>;
         };
         solana?: {
             isPhantom?: boolean;
