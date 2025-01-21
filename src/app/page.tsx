@@ -1,6 +1,7 @@
 // app/page.tsx
 "use client";
 
+import SolanaApp from "@/components/Solana";
 import WalletConnect from "@/components/WalletConnect";
 import { connectMetaMask } from "@/lib/evm";
 // import { connectPhantom, sendTransactionPhantom } from "@/lib/solana";
@@ -56,6 +57,7 @@ export default function Home() {
 			{address && <p className="mt-4">Connected Address: {address}</p>}
 
 			<WalletConnect />
+			<SolanaApp />
 		</main>
 	);
 }
